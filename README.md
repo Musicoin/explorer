@@ -1,6 +1,6 @@
 # Musicoin Block Explorer
 
-A blockchain explorer built with NodeJS, Express and Parity. It does not require an external database and retrieves all information on the fly from a backend Parity node.
+A blockchain explorer built with Node.js and Parity. It does not require an external database and retrieves all information on the fly from a backend Parity node.
 
 ## Current Features
 * Browse blocks, transactions, accounts and contracts.
@@ -24,8 +24,10 @@ A blockchain explorer built with NodeJS, Express and Parity. It does not require
 
 ### Setup from source
 
-Supported OS: Windows 7 and newer.
-Supported Ethereum backend nodes: Parity 1.8.x
+Supported environment:
+* Windows 7 and newer
+* Parity 1.8.x
+* Node.js 8
 
 1. Setup a nodejs & npm environment.
 2. Install the Parity node.
