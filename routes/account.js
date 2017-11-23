@@ -4,8 +4,8 @@ var router = express.Router();
 var async = require('async');
 var Web3 = require('web3');
 
-router.get('/:account', function(req, res, next) {
-  
+router.get('/:account', function(req, res, next)
+{  
   var config = req.app.get('config');  
   var web3 = new Web3();
   web3.setProvider(config.provider);
@@ -15,22 +15,27 @@ router.get('/:account', function(req, res, next) {
   var data = {};
   
   async.waterfall([
-    function(callback) {
-      web3.eth.getBlock("latest", false, function(err, result) {
-        callback(err, result);
-      });
-    }, function(lastBlock, callback) {
+    function(callback)
+    {
+      web3.eth.getBlock("latest", false, function(err, result) { callback(err, result); });
+    },
+    function(lastBlock, callback)
+    {
       data.lastBlock = lastBlock.number;
-      //limits the from block to -1000 blocks ago if block count is greater than 1000
-       if(data.lastBlock > 0x3E8){
-         data.fromBlock = data.lastBlock - 0x3e8;
-        }else{
-          data.fromBlock = 0x00;
-        }
-      web3.eth.getBalance(req.params.account, function(err, balance) {
-        callback(err, balance);
-      });
-    }, function(balance, callback) {
+
+      if(data.lastBlock > 0x100000)
+      {
+        data.fromBlock = data.lastBlock - 0x100000;
+      }
+      else
+      {
+        data.fromBlock = 0x00;
+      }
+
+      web3.eth.getBalance(req.params.account, function(err, balance) { callback(err, balance); });
+    },
+    function(balance, callback)
+    {
       data.balance = balance;
       web3.eth.getCode(req.params.account, function(err, code) {
         callback(err, code);
@@ -44,8 +49,9 @@ router.get('/:account', function(req, res, next) {
       db.get(req.params.account.toLowerCase(), function(err, value) {
         callback(null, value);
       });
-    }, function(source, callback) {
-      
+    },
+    function(source, callback)
+    {      
       if (source) {
         data.source = JSON.parse(source);
         
@@ -77,46 +83,85 @@ router.get('/:account', function(req, res, next) {
       }
       
       
-    }, function(callback) {
-      web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16), "fromAddress": [ req.params.account ] }, function(err, traces) {
-        callback(err, traces);
-      });
-    }, function(tracesSent, callback) {
+    },
+    function(callback)
+    {
+      web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16), "fromAddress": [ req.params.account ] },
+                        function(err, traces) { callback(err, traces); });
+    },
+    function(tracesSent, callback)
+    {
       data.tracesSent = tracesSent;
-      web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16), "toAddress": [ req.params.account ] }, function(err, traces) {
-        callback(err, traces);
+      web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16), "toAddress": [ req.params.account ] },
+                        function(err, traces) { callback(err, traces); });
+    },
+    function(tracesReceived, callback)
+    {
+      data.address = req.params.account;
+      data.tracesReceived = tracesReceived;
+      
+      var numberOfBlocks = 0;
+      var blocks = {};
+      data.tracesSent.forEach(function(trace)
+      {
+        if (trace.action.from == req.params.account)
+        {
+          if (!blocks[trace.blockNumber])
+          {
+            blocks[trace.blockNumber] = [];
+            numberOfBlocks++;
+          }
+          blocks[trace.blockNumber].push(trace);
+        }
       });
+
+      data.tracesReceived.forEach(function(trace)
+      {
+        if (trace.action.author == req.params.account ||
+            trace.action.to == req.params.account)
+        {
+          if (!blocks[trace.blockNumber])
+          {
+            blocks[trace.blockNumber] = [];
+            numberOfBlocks++;
+          }
+          blocks[trace.blockNumber].push(trace);
+        }
+      });
+
+      var count = 0;
+      for (var block in blocks)
+      {
+        web3.eth.getBlock(block, false, function(err, result)
+                                        {
+                                          blocks[result.number].time = result.timestamp;
+                                          blocks[result.number].difficulty = result.difficulty;
+                                          count++;
+                                          if (count >= numberOfBlocks)
+                                          {
+                                            callback(err, blocks);
+                                          }
+                                        });
+      }
     }
-  ], function(err, tracesReceived) {
-    if (err) {
+  ],
+
+  function(err, blocks)
+  {
+    if (err)
+    {
       return next(err);
     }
-    
-    data.address = req.params.account;
-    data.tracesReceived = tracesReceived;
-    
-    var blocks = {};
-    data.tracesSent.forEach(function(trace) {
-      if (!blocks[trace.blockNumber]) {
-        blocks[trace.blockNumber] = [];
-      }
-      
-      blocks[trace.blockNumber].push(trace);
-    });
-    data.tracesReceived.forEach(function(trace) {
-      if (!blocks[trace.blockNumber]) {
-        blocks[trace.blockNumber] = [];
-      }
-      
-      blocks[trace.blockNumber].push(trace);
-    });
-    
+  
     data.tracesSent = null;
     data.tracesReceived = null;
     
     data.blocks = [];
     var txCounter = 0;
-    for (var block in blocks) {
+    for (var block in blocks)
+    {
+      //var bb = web3.eth.getBlock(block);
+      //console.log(bb);
       data.blocks.push(blocks[block]);
       txCounter++;
     }
@@ -127,7 +172,7 @@ router.get('/:account', function(req, res, next) {
       data.name = config.names[data.address];
     }
     
-    data.blocks = data.blocks.reverse().splice(0, 100);
+    data.blocks = data.blocks.reverse().splice(0, 100000);
     res.render('account', { account: data });
   });
   
