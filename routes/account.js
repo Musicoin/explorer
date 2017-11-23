@@ -4,6 +4,8 @@ var router = express.Router();
 var async = require('async');
 var Web3 = require('web3');
 
+const kStartBlock = 1000000;
+
 router.get('/:account', function(req, res, next)
 {  
   var config = req.app.get('config');  
@@ -23,13 +25,13 @@ router.get('/:account', function(req, res, next)
     {
       data.lastBlock = lastBlock.number;
 
-      if(data.lastBlock > 0x100000)
+      if(data.lastBlock > kStartBlock)
       {
-        data.fromBlock = data.lastBlock - 0x100000;
+        data.fromBlock = data.lastBlock - kStartBlock;
       }
       else
       {
-        data.fromBlock = 0x00;
+        data.fromBlock = 0;
       }
 
       web3.eth.getBalance(req.params.account, function(err, balance) { callback(err, balance); });
@@ -37,22 +39,22 @@ router.get('/:account', function(req, res, next)
     function(balance, callback)
     {
       data.balance = balance;
-      web3.eth.getCode(req.params.account, function(err, code) {
-        callback(err, code);
-      });
-    }, function(code, callback) {
+      web3.eth.getCode(req.params.account, function(err, code) { callback(err, code); });
+    },
+    function(code, callback)
+    {
       data.code = code;
-      if (code !== "0x") {
+      if (code !== "0x")
+      {
         data.isContract = true;
       }
       
-      db.get(req.params.account.toLowerCase(), function(err, value) {
-        callback(null, value);
-      });
+      db.get(req.params.account.toLowerCase(), function(err, value) { callback(null, value); });
     },
     function(source, callback)
     {      
-      if (source) {
+      if (source)
+      {
         data.source = JSON.parse(source);
         
         var abi = JSON.parse(data.source.abi);
@@ -60,29 +62,35 @@ router.get('/:account', function(req, res, next)
         
         data.contractState = [];
         
-        async.eachSeries(abi, function(item, eachCallback) {
-          if (item.type === "function" && item.inputs.length === 0 && item.constant) {
-            try {
-              contract[item.name](function(err, result) {
-                data.contractState.push({ name: item.name, result: result });
-                eachCallback();
-              });
-            } catch(e) {
+        async.eachSeries(abi, function(item, eachCallback)
+        {
+          if (item.type === "function" && item.inputs.length === 0 && item.constant)
+          {
+            try
+            {
+              contract[item.name](function(err, result)
+                                  {
+                                    data.contractState.push({ name: item.name, result: result });
+                                    eachCallback();
+                                  });
+            }
+            catch(e)
+            {
               console.log(e);
               eachCallback();
             }
-          } else {
+          }
+          else
+          {
             eachCallback();
           }
-        }, function(err) {
-          callback(err);
-        });
-        
-      } else {
+        },
+        function(err) { callback(err); });
+      }
+      else
+      {
         callback();
       }
-      
-      
     },
     function(callback)
     {
@@ -132,16 +140,17 @@ router.get('/:account', function(req, res, next)
       var count = 0;
       for (var block in blocks)
       {
-        web3.eth.getBlock(block, false, function(err, result)
-                                        {
-                                          blocks[result.number].time = result.timestamp;
-                                          blocks[result.number].difficulty = result.difficulty;
-                                          count++;
-                                          if (count >= numberOfBlocks)
-                                          {
-                                            callback(err, blocks);
-                                          }
-                                        });
+        web3.eth.getBlock(block, false,
+                          function(err, result)
+                          {
+                            blocks[result.number].time = result.timestamp;
+                            blocks[result.number].difficulty = result.difficulty;
+                            count++;
+                            if (count >= numberOfBlocks)
+                            {
+                              callback(err, blocks);
+                            }
+                          });
       }
     }
   ],
@@ -160,15 +169,17 @@ router.get('/:account', function(req, res, next)
     var txCounter = 0;
     for (var block in blocks)
     {
-      //var bb = web3.eth.getBlock(block);
       //console.log(bb);
       data.blocks.push(blocks[block]);
       txCounter++;
     }
     
-    if (data.source) {
+    if (data.source)
+    {
       data.name = data.source.name;
-    } else if (config.names[data.address]) {
+    }
+    else if (config.names[data.address])
+    {
       data.name = config.names[data.address];
     }
     
