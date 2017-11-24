@@ -7,6 +7,8 @@ block content
       tr
         th Number
         th Miner
+        th(style='text-align:right') Difficulty
+        th(style='text-align:right') Approx. Rate
         th Timestamp
         th # Tx
         th # Uncles
@@ -15,8 +17,10 @@ block content
         tr
           td
             a(href="/block/" + block.number) #{block.number}
-          td 
+          td
             a(href="/account/" + block.author) #{nameformatter.format(block.author)}
+          td(style='text-align:right') #{numeral(block.difficulty * 1e-12).format('0.000')} TH
+          td(style='text-align:right') #{numeral(block.difficulty * 1e-9 / 15).format('0.00')} GH/s
           td #{moment.unix(block.timestamp).format()}
           td #{block.transactions.length}
           td #{block.uncles.length}
@@ -30,7 +34,7 @@ block content
           th Hash
           th From
           th To
-          th Amount
+          th(style='text-align:right') Amount
       tbody
         for tx in txs
           tr
@@ -43,4 +47,4 @@ block content
                 a(href="/account/" + tx.to) #{nameformatter.format(tx.to)}
               else
                 | New Contract
-            td #{ethformatter(tx.value)}
+            td(style='text-align:right') #{ethformatter(tx.value)}
