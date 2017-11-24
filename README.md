@@ -29,6 +29,8 @@ Supported environment:
 * Parity 1.8.x
 * Node.js 8
 
+### Run your local node
+
 1. Setup a nodejs & npm environment.
 2. Install the Parity node.
 3. Start parity using the following options: `parity --chain musicoin --tracing=on --fat-db=on --pruning=archive  --ipcpath=\\.\pipe\musicoin.ipc`
