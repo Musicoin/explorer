@@ -22,6 +22,9 @@ block content
       td Miner: 
       td  
         a(href="/account/" + block.author) #{nameformatter.format(block.author)}
+    //tr
+    //td Block Reward: 
+    //td #{ethformatter(block.value)}
     tr
       td Gas Limit:
       td #{numeral(block.gasLimit).format()}

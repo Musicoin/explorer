@@ -37,6 +37,7 @@ block content
               th(style='text-align:right') Approx. Rate
               th Type
               th(style='text-align:right') Amount
+              th(style='text-align:right') Balance
               th
               th From
               th To
@@ -57,6 +58,7 @@ block content
                         span(style="color: red", data-toggle="tooltip", data-placement="left", title=trace.error).glyphicon.glyphicon-warning-sign
                       |  #{trace.type}
                     td(style='text-align:right') #{ethformatter(trace.action.value)}
+                    //td(style='text-align:right') #{ethformatter(trace.action.balance)}
 
                     td
                       if trace.action.from == account.address
@@ -77,6 +79,7 @@ block content
                       td(style='text-align:right') #{numeral(block.difficulty * 1e-9 / 15).format('0.00')} GH/s
                       td Mined
                       td(style='text-align:right') #{ethformatter(trace.action.value)}
+                      //td(style='text-align:right') #{ethformatter(trace.action.balance)}
 
                       td
                       td
@@ -90,6 +93,7 @@ block content
                       td(style='text-align:right') #{numeral(block.difficulty * 1e-9 / 15).format('0.00')} GH/s
                       td Uncle
                       td(style='text-align:right') #{ethformatter(trace.action.value)}
+                      //td(style='text-align:right') #{ethformatter(trace.action.balance)}
 
                       td
                       td

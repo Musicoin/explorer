@@ -4,10 +4,12 @@ var router = express.Router();
 var async = require('async');
 var Web3 = require('web3');
 
-const kStartBlock = 1000000;
+var BigNumber = require('bignumber.js');
+
+const kMaxBlocks = 1000000;
 
 router.get('/:account', function(req, res, next)
-{  
+{
   var config = req.app.get('config');  
   var web3 = new Web3();
   web3.setProvider(config.provider);
@@ -25,9 +27,9 @@ router.get('/:account', function(req, res, next)
     {
       data.lastBlock = lastBlock.number;
 
-      if(data.lastBlock > kStartBlock)
+      if(data.lastBlock > kMaxBlocks)
       {
-        data.fromBlock = data.lastBlock - kStartBlock;
+        data.fromBlock = data.lastBlock - kMaxBlocks;
       }
       else
       {
@@ -140,11 +142,12 @@ router.get('/:account', function(req, res, next)
       var count = 0;
       for (var block in blocks)
       {
-        web3.eth.getBlock(block, false,
+        web3.eth.getBlock(block, true,
                           function(err, result)
                           {
                             blocks[result.number].time = result.timestamp;
                             blocks[result.number].difficulty = result.difficulty;
+                            blocks[result.number].gasUsed = result.gasUsed;
                             count++;
                             if (count >= numberOfBlocks)
                             {
@@ -184,6 +187,40 @@ router.get('/:account', function(req, res, next)
     }
     
     data.blocks = data.blocks.reverse().splice(0, 100000);
+
+    /*
+    var balance = data.balance;
+    for (var bb = 0; bb in data.blocks; bb++)
+    {
+      for (var tt = 0; tt in data.blocks[bb]; tt++)
+      {
+        data.blocks[bb][tt].action.balance = balance;
+
+        var trace = data.blocks[bb][tt];
+
+        if (trace.action.author == data.address)
+        {
+          if (trace.action.rewardType == "block")
+          {
+            var value = new BigNumber(trace.action.value);
+            trace.action.value = value.plus(data.blocks[bb].gasUsed * 2e10);
+          }
+          balance = balance.minus(trace.action.value);
+        }
+        else if (trace.action.to == data.address)
+        {
+          balance = balance.minus(trace.action.value);
+        }
+        else
+        {
+          var value = new BigNumber(trace.action.value);
+          trace.action.value = value.plus(trace.action.gas * 2e10);
+          balance = balance.plus(trace.action.value);
+        }          
+      }
+    }
+    */
+
     res.render('account', { account: data });
   });
   
