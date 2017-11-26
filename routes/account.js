@@ -138,6 +138,8 @@ router.get('/:account', function(req, res, next)
           blocks[trace.blockNumber].push(trace);
         }
       });
+      
+      data.blockCount = numberOfBlocks;
 
       var count = 0;
       for (var block in blocks)
@@ -149,12 +151,35 @@ router.get('/:account', function(req, res, next)
                             blocks[result.number].difficulty = result.difficulty;
                             blocks[result.number].gasUsed = result.gasUsed;
                             count++;
-                            if (count >= numberOfBlocks)
+                            if (count >= data.blockCount)
                             {
                               callback(err, blocks);
                             }
                           });
       }
+    },
+    function(blocks, callback)
+    {
+      var blockList = [];
+      for (var block in blocks)
+      {
+        blockList.push(block);
+      }
+
+      var count = 0;
+      blockList.forEach(function(block, index)
+                        {
+                          web3.eth.getBalance(data.address, block,
+                                              function(err, result)
+                                              {
+                                                blocks[block].balance = result;
+                                                count++;
+                                                if (count >= data.blockCount)
+                                                {
+                                                  callback(null, blocks);
+                                                }
+                                              });
+                        });
     }
   ],
 
