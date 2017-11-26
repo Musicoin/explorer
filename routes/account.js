@@ -6,7 +6,7 @@ var Web3 = require('web3');
 
 var BigNumber = require('bignumber.js');
 
-//const kMaxBlocks = 1000000;
+const kMaxBlocks = 1000000;
 
 router.get('/:account', function(req, res, next)
 {
@@ -26,16 +26,15 @@ router.get('/:account', function(req, res, next)
     function(lastBlock, callback)
     {
       data.lastBlock = lastBlock.number;
-      data.fromBlock = 0;
 
-      // if(data.lastBlock > kMaxBlocks)
-      // {
-        // data.fromBlock = data.lastBlock - kMaxBlocks;
-      // }
-      // else
-      // {
-        // data.fromBlock = 0;
-      // }
+      if(data.lastBlock > kMaxBlocks)
+      {
+        data.fromBlock = data.lastBlock - kMaxBlocks;
+      }
+      else
+      {
+        data.fromBlock = 0;
+      }
 
       web3.eth.getBalance(req.params.account, function(err, balance) { callback(err, balance); });
     },
