@@ -10,6 +10,17 @@ const kMaxBlocks = 1000000;
 
 router.get('/:account', function(req, res, next)
 {
+  var T0 = Date.now();
+  console.log("T0: %d", T0)
+
+  var T1 = T0;
+  var T2 = T0;
+  var T3 = T0;
+  var T4 = T0;
+  var T5 = T0;
+  var T6 = T0;
+  var T7 = T0;
+
   var config = req.app.get('config');  
   var web3 = new Web3();
   web3.setProvider(config.provider);
@@ -17,6 +28,7 @@ router.get('/:account', function(req, res, next)
   var db = req.app.get('db');
   
   var data = {};
+  var blockList = [];
   
   async.waterfall([
     function(callback)
@@ -54,7 +66,10 @@ router.get('/:account', function(req, res, next)
       db.get(req.params.account.toLowerCase(), function(err, value) { callback(null, value); });
     },
     function(source, callback)
-    {      
+    {
+      T1 = Date.now();
+      console.log("T1: %d, %f secs.", T1, (T1-T0) * 1e-3);
+
       if (source)
       {
         data.source = JSON.parse(source);
@@ -101,12 +116,18 @@ router.get('/:account', function(req, res, next)
     },
     function(tracesSent, callback)
     {
+      T2 = Date.now();
+      console.log("T2: %d, %f secs.", T2, (T2-T1) * 1e-3);
+
       data.tracesSent = tracesSent;
       web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16), "toAddress": [ req.params.account ] },
                         function(err, traces) { callback(err, traces); });
     },
     function(tracesReceived, callback)
     {
+      T3 = Date.now();
+      console.log("T3: %d, %f secs.", T3, (T3-T2) * 1e-3);
+
       data.address = req.params.account;
       data.tracesReceived = tracesReceived;
       
@@ -141,6 +162,11 @@ router.get('/:account', function(req, res, next)
       
       data.blockCount = numberOfBlocks;
 
+      for (var block in blocks)
+      {
+        blockList.push(block);
+      }
+
       var count = 0;
       for (var block in blocks)
       {
@@ -160,11 +186,8 @@ router.get('/:account', function(req, res, next)
     },
     function(blocks, callback)
     {
-      var blockList = [];
-      for (var block in blocks)
-      {
-        blockList.push(block);
-      }
+      T4 = Date.now();
+      console.log("T4: %d, %f secs.", T4, (T4-T3) * 1e-3);
 
       var count = 0;
       blockList.forEach(function(block, index)
@@ -185,6 +208,9 @@ router.get('/:account', function(req, res, next)
 
   function(err, blocks)
   {
+    T5 = Date.now();
+    console.log("T5: %d, %f secs.", T5, (T5-T4) * 1e-3);
+
     if (err)
     {
       return next(err);
@@ -213,7 +239,16 @@ router.get('/:account', function(req, res, next)
     
     data.blocks = data.blocks.reverse().splice(0, 100000);
 
+    T6 = Date.now();
+    console.log("T6: %d, %f secs.", T6, (T6-T5) * 1e-3);
+
     res.render('account', { account: data });
+
+    T7 = Date.now();
+    console.log("T7: %d, %f secs.", T7, (T7-T6) * 1e-3);
+
+    var TE = Date.now();
+    console.log("TE: %d, %f secs.", TE, (TE-T0) * 1e-3);
   });
   
 });
