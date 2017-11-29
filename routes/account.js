@@ -6,7 +6,9 @@ var Web3 = require('web3');
 
 var BigNumber = require('bignumber.js');
 
-const kMaxBlocks = 1000000;
+const kMaxBlocks = 100000;
+const kBlocksPerCall = 1000;
+const kIterations = kMaxBlocks / kBlocksPerCall;
 
 router.get('/:account', function(req, res, next)
 {
@@ -39,14 +41,15 @@ router.get('/:account', function(req, res, next)
     {
       data.lastBlock = lastBlock.number;
 
-      if(data.lastBlock > kMaxBlocks)
-      {
-        data.fromBlock = data.lastBlock - kMaxBlocks;
-      }
-      else
-      {
-        data.fromBlock = 0;
-      }
+      // if(data.lastBlock > kMaxBlocks)
+      // {
+        // data.fromBlock = data.lastBlock - kMaxBlocks;
+      // }
+      // else
+      // {
+        // data.fromBlock = 0;
+      // }
+      data.fromBlock = 500000;
 
       web3.eth.getBalance(req.params.account, function(err, balance) { callback(err, balance); });
     },
@@ -68,9 +71,10 @@ router.get('/:account', function(req, res, next)
     function(source, callback)
     {
       T1 = Date.now();
-      console.log("T1: %d, %f secs.", T1, (T1-T0) * 1e-3);
+      console.log("T1: %d, %.3f secs.", T1, (T1-T0) * 1e-3);
 
-      if (source)
+      // Disable this for now.
+      if (false)//(source)
       {
         data.source = JSON.parse(source);
         
@@ -111,13 +115,14 @@ router.get('/:account', function(req, res, next)
     },
     function(callback)
     {
+      console.log("From: 0x" + data.fromBlock.toString(16));
       web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16), "fromAddress": [ req.params.account ] },
                         function(err, traces) { callback(err, traces); });
     },
     function(tracesSent, callback)
     {
       T2 = Date.now();
-      console.log("T2: %d, %f secs.", T2, (T2-T1) * 1e-3);
+      console.log("T2: %d, %.3f secs.", T2, (T2-T1) * 1e-3);
 
       data.tracesSent = tracesSent;
       web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16), "toAddress": [ req.params.account ] },
@@ -126,10 +131,12 @@ router.get('/:account', function(req, res, next)
     function(tracesReceived, callback)
     {
       T3 = Date.now();
-      console.log("T3: %d, %f secs.", T3, (T3-T2) * 1e-3);
+      console.log("T3: %d, %.3f secs.", T3, (T3-T2) * 1e-3);
 
       data.address = req.params.account;
       data.tracesReceived = tracesReceived;
+      
+      console.log("data.tracesSent.length = %d", data.tracesSent.length);
       
       var numberOfBlocks = 0;
       var blocks = {};
@@ -145,6 +152,8 @@ router.get('/:account', function(req, res, next)
           blocks[trace.blockNumber].push(trace);
         }
       });
+  
+      console.log("data.tracesReceived.length = %d", data.tracesReceived.length);
 
       data.tracesReceived.forEach(function(trace)
       {
@@ -161,6 +170,7 @@ router.get('/:account', function(req, res, next)
       });
       
       data.blockCount = numberOfBlocks;
+      console.log("data.blockCount = %d", data.blockCount);
 
       for (var block in blocks)
       {
@@ -168,48 +178,54 @@ router.get('/:account', function(req, res, next)
       }
 
       var count = 0;
-      for (var block in blocks)
-      {
-        web3.eth.getBlock(block, true,
-                          function(err, result)
-                          {
-                            blocks[result.number].time = result.timestamp;
-                            blocks[result.number].difficulty = result.difficulty;
-                            blocks[result.number].gasUsed = result.gasUsed;
-                            count++;
-                            if (count >= data.blockCount)
-                            {
-                              callback(err, blocks);
-                            }
-                          });
-      }
+
+      async.eachOfSeries
+      (blockList,
+       async function(block)
+       {
+         web3.eth.getBlock(block, false,
+                           function(err, result)
+                           {
+                             blocks[result.number].time = result.timestamp;
+                             blocks[result.number].difficulty = result.difficulty;
+                             //blocks[result.number].gasUsed = result.gasUsed;
+                             count++;
+                             if (count >= data.blockCount)
+                             {
+                               callback(err, blocks);
+                             }
+                           });
+       });
     },
     function(blocks, callback)
     {
       T4 = Date.now();
-      console.log("T4: %d, %f secs.", T4, (T4-T3) * 1e-3);
+      console.log("T4: %d, %.3f secs.", T4, (T4-T3) * 1e-3);
 
       var count = 0;
-      blockList.forEach(function(block, index)
-                        {
-                          web3.eth.getBalance(data.address, block,
-                                              function(err, result)
-                                              {
-                                                blocks[block].balance = result;
-                                                count++;
-                                                if (count >= data.blockCount)
-                                                {
-                                                  callback(null, blocks);
-                                                }
-                                              });
-                        });
+
+      async.eachOfSeries
+      (blockList,
+       async function(block)
+       {
+         web3.eth.getBalance(data.address, block, 
+                             function(err, result)
+                             {
+                               blocks[block].balance = result;
+                               count++;
+                               if (count >= data.blockCount)
+                               {
+                                 callback(err, blocks);
+                               }
+                             });
+       });
     }
   ],
 
   function(err, blocks)
   {
     T5 = Date.now();
-    console.log("T5: %d, %f secs.", T5, (T5-T4) * 1e-3);
+    console.log("T5: %d, %.3f secs.", T5, (T5-T4) * 1e-3);
 
     if (err)
     {
@@ -240,15 +256,15 @@ router.get('/:account', function(req, res, next)
     data.blocks = data.blocks.reverse().splice(0, 100000);
 
     T6 = Date.now();
-    console.log("T6: %d, %f secs.", T6, (T6-T5) * 1e-3);
+    console.log("T6: %d, %.3f secs.", T6, (T6-T5) * 1e-3);
 
     res.render('account', { account: data });
 
     T7 = Date.now();
-    console.log("T7: %d, %f secs.", T7, (T7-T6) * 1e-3);
+    console.log("T7: %d, %.3f secs.", T7, (T7-T6) * 1e-3);
 
     var TE = Date.now();
-    console.log("TE: %d, %f secs.", TE, (TE-T0) * 1e-3);
+    console.log("TE: %d, %.3f secs.", TE, (TE-T0) * 1e-3);
   });
   
 });
