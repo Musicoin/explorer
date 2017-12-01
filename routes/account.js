@@ -167,7 +167,7 @@ router.get('/:account', function(req, res, next)
         {
           var processedBlocks = data.lastBlock - data.fromBlock + 1;
           var numberOfTransactionsLeft = kTargetNumberOfTransactions - data.numberOfTransactions;
-          numberOfTransactionsLeft /= 5;  // Start with approximating for 20% more transactions to target.
+          numberOfTransactionsLeft /= 10;  // Start with approximating for 10% more transactions to target.
           numberToProcess = Math.floor(processedBlocks * numberOfTransactionsLeft / data.numberOfTransactions);
           if (numberToProcess < kInitialMaxBlocks)
             numberToProcess = kInitialMaxBlocks;
