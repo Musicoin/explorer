@@ -237,6 +237,8 @@ router.get('/:account', function(req, res, next)
 
       data.address = req.params.account;
       data.numberOfTransactions = data.tracesSent.length + data.tracesReceived.length;
+      data.numberOfBlocksMined = 0;
+      data.numberOfUncles = 0;
       console.log("Number of transactions = %d, from block %d",
                   data.numberOfTransactions, data.fromBlock);
       
@@ -244,35 +246,38 @@ router.get('/:account', function(req, res, next)
       var blocks = {};
       data.tracesSent.forEach(function(trace)
       {
-        //if (trace.action.from == req.params.account)
+        if (!blocks[trace.blockNumber])
         {
-          if (!blocks[trace.blockNumber])
-          {
-            blocks[trace.blockNumber] = [];
-            numberOfBlocks++;
-          }
-          blocks[trace.blockNumber].push(trace);
+          blocks[trace.blockNumber] = [];
+          numberOfBlocks++;
         }
+        blocks[trace.blockNumber].push(trace);
       });
   
       console.log("data.tracesReceived.length = %d", data.tracesReceived.length);
 
       data.tracesReceived.forEach(function(trace)
       {
-        //if (trace.action.author == req.params.account ||
-        //    trace.action.to == req.params.account)
+        if (!blocks[trace.blockNumber])
         {
-          if (!blocks[trace.blockNumber])
-          {
-            blocks[trace.blockNumber] = [];
-            numberOfBlocks++;
-          }
-          blocks[trace.blockNumber].push(trace);
+          blocks[trace.blockNumber] = [];
+          numberOfBlocks++;
+        }
+        blocks[trace.blockNumber].push(trace);
+        
+        if (trace.type == "reward")
+        {
+          data.numberOfBlocksMined++;
+
+          if (trace.action.rewardType == "uncle")
+            data.numberOfUncles++;
         }
       });
       
       data.blockCount = numberOfBlocks;
       console.log("data.blockCount = %d", data.blockCount);
+      console.log("Blocks mined: %d, Uncles: %d",
+                  data.numberOfBlocksMined, data.numberOfUncles);
 
       for (var block in blocks)
       {

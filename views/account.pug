@@ -8,6 +8,8 @@ block content
   table.table
     tr
       td Balance: #{ethformatter(account.balance)}
+    tr
+      td Total Blocks Mined: #{account.numberOfBlocksMined}, Uncle Blocks: #{account.numberOfUncles} (Since Block ##{account.fromBlock})
     if account.name
       tr
         td Name: #{account.name}
@@ -26,7 +28,7 @@ block content
           a(href='#contractState', aria-controls='source', role='tab', data-toggle='tab') Contract State
     .tab-content
       #transactions.tab-pane.active(role='tabpanel')
-        h4 #{account.numberOfTransactions} transactions starting from block #{account.fromBlock}
+        h4 #{account.numberOfTransactions} transactions starting from block ##{account.fromBlock}
         table.table
           thead
             tr
