@@ -26,7 +26,7 @@ block content
           a(href='#contractState', aria-controls='source', role='tab', data-toggle='tab') Contract State
     .tab-content
       #transactions.tab-pane.active(role='tabpanel')
-        h3 Last Transactions
+        h4 #{account.numberOfTransactions} transactions starting from block #{account.fromBlock}
         table.table
           thead
             tr
