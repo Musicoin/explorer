@@ -13,6 +13,7 @@ var accounts = require('./routes/accounts');
 var contract = require('./routes/contract');
 var signature = require('./routes/signature');
 var search = require('./routes/search');
+var api = require('./routes/api');
 
 var config = new(require('./config.js'))();
 
@@ -53,6 +54,7 @@ app.use('/accounts', accounts);
 app.use('/contract', contract);
 app.use('/signature', signature);
 app.use('/search', search);
+app.use('/api', api);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -71,5 +73,17 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+app.get('/currentBlock', function (req, res)
+{
+  console.log('/currentBlock');
+  var web3 = new Web3();
+  web3.setProvider(config.provider);
+  web3.eth.getBlock("latest", false, function(err, blockNumber)
+  {
+    console.log(blockNumber);
+    res.end(blockNumber);
+  });
+})
 
 module.exports = app;
