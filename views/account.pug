@@ -6,13 +6,17 @@ block content
   else
     h5 Account #{account.address}
   table.table
-    tr
-      td Balance: #{ethformatter(account.balance)}
-    tr
-      td Total Blocks Mined: #{account.numberOfBlocksMined}, Uncle Blocks: #{account.numberOfUncles} (Since Block ##{account.fromBlock})
     if account.name
       tr
-        td Name: #{account.name}
+        td
+          b Name: 
+          |   #{account.name}
+    tr
+      td
+        b Balance:
+        |   #{ethformatter(account.balance)}
+    tr
+      td Total Blocks Mined: #{account.numberOfBlocksMined}, Uncle Blocks: #{account.numberOfUncles} (Since Block ##{account.fromBlock})
 
   div
     ul.nav.nav-tabs(role='tablist')
@@ -28,7 +32,7 @@ block content
           a(href='#contractState', aria-controls='source', role='tab', data-toggle='tab') Contract State
     .tab-content
       #transactions.tab-pane.active(role='tabpanel')
-        h4 #{account.numberOfTransactions} transactions starting from block ##{account.fromBlock}
+        h4 #{account.numberOfTransactions} transactions from block ##{account.fromBlock} to ##{account.lastBlock}
         table.table
           thead
             tr

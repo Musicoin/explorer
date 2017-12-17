@@ -1,26 +1,29 @@
 var web3 = require('web3');
 var net = require('net');
 
-var config = function () {
-  
+var config = function ()
+{  
   this.logFormat = "combined";
   this.ipcPath = "\\\\.\\pipe\\musicoin.ipc";
   this.provider = new web3.providers.IpcProvider(this.ipcPath, net);
   
   this.bootstrapUrl = "https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/yeti/bootstrap.min.css";
   
-  this.names = {
-    "0x007733a1fe69cf3f2cf989f81c7b4cac1693387a": "POA-Digix",
-    "0x00e4a10650e5a6d6001c38ff8e64f97016a1645c": "POA-Aurel",
-    "0x00e6d2b931f55a3f1701c7389d592a7778897879": "POA-Maker",
-    "0x0010f94b296a852aaac52ea6c5ac72e03afd032d": "POA-Paritytech",
-    "0x0020ee4be0e2027d76603cb751ee069519ba81a1": "POA-Melonport",
-    "0x4ed9b08e6354c70fe6f8cb0411b0d3246b424d6c": "POA-OneBit",
-    "0x00d6cc1ba9cf89bd2e58009741f4f7325badc0ed": "POA-Etherscan",
-    "0x00a0a24b9f0e5ec7aa4c7389b8302fd0123194de": "POA-GridS",
-    "0x00427feae2419c15b89d1c21af10d1b6650a4d3d": "POA-Attores"    
+  this.names =
+  {
+    "0x00297dbed0856c7915b91cb88a61e1930156a330": "Developer SJL",
+    "0x89dbd56e0ac511518416fdcf5ccb452c2e89e0d4": "musicoin.miningpoolhub.com",
+    "0x6c2da62088e88059c5eb008e161bcef038839516": "musicoin.miningclub.info",
+    "0x7be6f70c1a9903146c49685fb4811b18348bb91c": "mc.minecrypto.pro",
+    "0xb5e08179a97359f189a07b51478c2ba2fc779cf0": "mc.minecrypto.pro",
+    "0x3a0b46a62ed6d65d98a6129d6e50dc714c1cfe23": "gmc.epool.io",
+    "0x1cc2f94b2cd644aa3d262f7b144088b810375f80": "music.mypool.online",
+    "0xa11d858c900487ad62dcc1cecdd87d4514fb70fa": "music.reidocoin.com.br"
   }
   
+  this.sslKey = "";
+  this.sslCertificate = "";
+  this.port = 3000;
 }
 
 module.exports = config;

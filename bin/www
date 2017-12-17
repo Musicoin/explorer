@@ -5,21 +5,40 @@
  */
 
 var app = require('../app');
-var debug = require('debug')('etherchain-light:server');
+var debug = require('debug')('blockchain-explorer:server');
 var http = require('http');
+
+var config = app.get('config');
+var port = config.port;
+console.log(config.names);
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 /**
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+var server;
+
+if (config.sslKey.length == 0)
+{
+  console.log('Starting HTTP server at port: ' + port);
+  server = http.createServer(app);
+}
+else
+{
+  console.log('Starting HTTPS server at port: ' + port);
+  var options =
+  {
+    key: fs.readFileSync(config.sslKey),
+    cert: fs.readFileSync(config.sslCertificate)
+  };
+  server = https.createServer(options, app);
+}
 
 /**
  * Listen on provided port, on all network interfaces.

@@ -7,6 +7,8 @@ var Web3 = require('web3');
 var BigNumber = require('bignumber.js');
 
 const kInitialMaxBlocks = 5000;
+const kMinBlocksToProcess = 10000;
+const kMaxBlocksToProcess = 200000;
 const kTargetNumberOfTransactions = 10000;
 
 router.get('/:account', function(req, res, next)
@@ -31,6 +33,91 @@ router.get('/:account', function(req, res, next)
   var data = {};
   var blockList = [];
   var blockOffsets = [];
+  
+  function getTransactions(toBlock, callback)
+  {
+    async.series([
+      function(callback)
+      {
+        web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16),
+                            "toBlock": "0x" + toBlock.toString(16),
+                            "fromAddress": [ req.params.account ] },
+                          function(err, traces)
+                          {
+                            traces.forEach(function(trace)
+                            {
+                              if (trace.action.from == req.params.account)
+                                data.tracesSent.push(trace);
+                            });
+
+                            callback(err);
+                          });
+      },
+      function(callback)
+      {
+        web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16),
+                            "toBlock": "0x" + toBlock.toString(16),
+                            "toAddress": [ req.params.account ] },
+                          function(err, traces)
+                          {
+                            traces.forEach(function(trace)
+                            {
+                              if (trace.action.author == req.params.account ||
+                                  trace.action.to == req.params.account)
+                                data.tracesReceived.push(trace);
+                            });
+
+                            callback(err);
+                          });
+      }
+    ],
+    function(err)
+    {
+      callback(err);
+    });
+  }
+  function getMoreTransactions(callback, minBlocks)
+  {
+    data.numberOfTransactions = data.tracesSent.length + data.tracesReceived.length;
+
+    if (data.numberOfTransactions < kTargetNumberOfTransactions && data.fromBlock > 0)
+    {
+      var toBlock = data.fromBlock - 1;
+      var numberToProcess = 0;
+      if (data.numberOfTransactions > 0)
+      {
+        var processedBlocks = data.lastBlock - data.fromBlock + 1;
+        var numberOfTransactionsLeft = kTargetNumberOfTransactions - data.numberOfTransactions;
+        numberOfTransactionsLeft /= 10;  // Start with approximating for 10% more transactions to target.
+        numberToProcess = Math.floor(processedBlocks * numberOfTransactionsLeft / data.numberOfTransactions);
+        if (numberToProcess < minBlocks)
+          numberToProcess = minBlocks;
+      }
+      else
+      {
+        numberToProcess = minBlocks;
+      }
+      console.log("numberToProcess: " + numberToProcess);
+
+      if (numberToProcess > kMaxBlocksToProcess)
+        numberToProcess = kMaxBlocksToProcess;
+
+      var fromBlock = data.fromBlock - numberToProcess;
+      if (fromBlock < 0)
+        fromBlock = Math.floor(data.fromBlock / 2);
+
+      data.fromBlock = fromBlock;
+
+      console.log("From: 0x" + data.fromBlock.toString(16) + " (" + data.fromBlock + ")");
+      console.log("To:   0x" + toBlock.toString(16) + " (" + toBlock + ")");
+
+      getTransactions(toBlock, callback);
+    }
+    else
+    {
+      callback(null);
+    }
+  }
   
   async.waterfall([
     function(callback)
@@ -118,118 +205,28 @@ router.get('/:account', function(req, res, next)
       console.log("To:   0x" + data.lastBlock.toString(16) + " (" + data.lastBlock + ")");
 
       data.tracesSent = [];
-
-      web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16),
-                          "toBlock": "0x" + data.lastBlock.toString(16),
-                          "fromAddress": [ req.params.account ] },
-                        function(err, traces)
-                        {
-                          traces.forEach(function(trace)
-                          {
-                            if (trace.action.from == req.params.account)
-                              data.tracesSent.push(trace);
-                          });
-
-                          callback(err);
-                        });
-    },
-    function(callback)
-    {
       data.tracesReceived = [];
 
-      web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16),
-                          "toBlock": "0x" + data.lastBlock.toString(16),
-                          "toAddress": [ req.params.account ] },
-                        function(err, traces)
-                        {
-                          traces.forEach(function(trace)
-                          {
-                            if (trace.action.author == req.params.account ||
-                                trace.action.to == req.params.account)
-                              data.tracesReceived.push(trace);
-                          });
-
-                          callback(err);
-                        });
+      getTransactions(data.lastBlock, callback);
     },
     function(callback)
     {
       T2 = Date.now();
       console.log("T2: %d, %f secs.", T2, (T2-T1) * 1e-3);
 
-      data.numberOfTransactions = data.tracesSent.length + data.tracesReceived.length;
-      var toBlock = data.fromBlock - 1;
-      
-      if (data.numberOfTransactions < kTargetNumberOfTransactions)
-      {
-        var numberToProcess = 0;
-        if (data.numberOfTransactions > 0)
-        {
-          var processedBlocks = data.lastBlock - data.fromBlock + 1;
-          var numberOfTransactionsLeft = kTargetNumberOfTransactions - data.numberOfTransactions;
-          numberOfTransactionsLeft /= 10;  // Start with approximating for 10% more transactions to target.
-          numberToProcess = Math.floor(processedBlocks * numberOfTransactionsLeft / data.numberOfTransactions);
-          if (numberToProcess < kInitialMaxBlocks)
-            numberToProcess = kInitialMaxBlocks;
-        }
-        else
-        {
-          numberToProcess = kInitialMaxBlocks;
-        }
-        console.log("numberToProcess: " + numberToProcess);
-        
-        var fromBlock = data.fromBlock - numberToProcess;
-        if (fromBlock < 0)
-          fromBlock = Math.floor(data.fromBlock / 2);
+      async.series([function(callback) { getMoreTransactions(callback, kInitialMaxBlocks); },
+                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
+                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
+                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
+                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
+                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
+                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); }],
 
-        data.fromBlock = fromBlock;
-
-        console.log("From: 0x" + data.fromBlock.toString(16) + " (" + data.fromBlock + ")");
-        console.log("To:   0x" + toBlock.toString(16) + " (" + toBlock + ")");
-
-        web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16),
-                            "toBlock": "0x" + toBlock.toString(16),
-                            "fromAddress": [ req.params.account ] },
-                          function(err, traces)
-                          {
-                            traces.forEach(function(trace)
-                            {
-                              if (trace.action.from == req.params.account)
-                                data.tracesSent.push(trace);
-                            });
-
-                            callback(err, toBlock);
-                          });
-      }
-      else
-      {
-        callback(null, toBlock);
-      }
+                   function(err)
+                   {
+                     callback(err);
+                   });
     },
-    function(toBlock, callback)
-    {
-      if (data.numberOfTransactions < kTargetNumberOfTransactions)
-      {
-        web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16),
-                            "toBlock": "0x" + toBlock.toString(16),
-                            "toAddress": [ req.params.account ] },
-                          function(err, traces)
-                          {
-                            traces.forEach(function(trace)
-                            {
-                              if (trace.action.author == req.params.account ||
-                                  trace.action.to == req.params.account)
-                                data.tracesReceived.push(trace);
-                            });
-
-                            callback(err);
-                          });
-      }
-      else
-      {
-        callback();
-      }
-    },      
     function(callback)
     {
       T3 = Date.now();
@@ -284,48 +281,62 @@ router.get('/:account', function(req, res, next)
         blockList.push(block);
       }
 
-      var count = 0;
+      if (data.blockCount > 0)
+      {
+        var count = 0;
 
-      async.eachOfSeries
-      (blockList,
-       async function(block)
-       {
-         web3.eth.getBlock(block, false,
-                           function(err, result)
-                           {
-                             blocks[result.number].time = result.timestamp;
-                             blocks[result.number].difficulty = result.difficulty;
-                             //blocks[result.number].gasUsed = result.gasUsed;
-                             count++;
-                             if (count >= data.blockCount)
-                             {
-                               callback(err, blocks);
-                             }
-                           });
-       });
-    },
-    function(blocks, callback)
-    {
-      T4 = Date.now();
-      console.log("T4: %d, %f secs.", T4, (T4-T3) * 1e-3);
-
-      var count = 0;
-
-      async.eachOfSeries
-      (blockList,
-       async function(block)
-       {
-         web3.eth.getBalance(data.address, block, 
+        async.eachOfSeries
+        (blockList,
+         async function(block)
+         {
+           web3.eth.getBlock(block, false,
                              function(err, result)
                              {
-                               blocks[block].balance = result;
+                               blocks[result.number].time = result.timestamp;
+                               blocks[result.number].difficulty = result.difficulty;
+                               //blocks[result.number].gasUsed = result.gasUsed;
                                count++;
                                if (count >= data.blockCount)
                                {
                                  callback(err, blocks);
                                }
                              });
-       });
+         });
+      }
+      else
+      {
+        callback(null, blocks);
+      }
+    },
+    function(blocks, callback)
+    {
+      T4 = Date.now();
+      console.log("T4: %d, %f secs.", T4, (T4-T3) * 1e-3);
+
+      if (data.blockCount > 0)
+      {
+        var count = 0;
+
+        async.eachOfSeries
+        (blockList,
+         async function(block)
+         {
+           web3.eth.getBalance(data.address, block, 
+                               function(err, result)
+                               {
+                                 blocks[block].balance = result;
+                                 count++;
+                                 if (count >= data.blockCount)
+                                 {
+                                   callback(err, blocks);
+                                 }
+                               });
+         });
+      }
+      else
+      {
+        callback(null, blocks);
+      }
     }
   ],
 
