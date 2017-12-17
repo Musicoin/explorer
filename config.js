@@ -21,9 +21,9 @@ var config = function ()
     "0xa11d858c900487ad62dcc1cecdd87d4514fb70fa": "music.reidocoin.com.br"
   }
   
-  this.sslKey = "C:/ProgramData/letsencrypt-win-simple/httpsacme-v01.api.letsencrypt.org/explorer.musicoin.org-key.pem";
-  this.sslCertificate = "C:/ProgramData/letsencrypt-win-simple/httpsacme-v01.api.letsencrypt.org/explorer.musicoin.org-crt.pem";
-  this.port = 443;
+  this.sslKey = "";
+  this.sslCertificate = "";
+  this.port = 3000;
 }
 
 module.exports = config;
