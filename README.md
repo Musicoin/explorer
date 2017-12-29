@@ -39,3 +39,9 @@ Supported environment:
 6. Adjust `config.js` if necessary.
 7. Start the block explorer: `npm start`
 8. Browse to `http://localhost:3000`
+
+### API
+/api/currentBlock  
+/api/block/<block_number>  
+/api/accountBalance/<account_address>  
+/api/transaction/<transaction_hash>  
