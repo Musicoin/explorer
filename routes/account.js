@@ -122,11 +122,19 @@ router.get('/:account', function(req, res, next)
   async.waterfall([
     function(callback)
     {
-      web3.eth.getBlock("latest", false, function(err, result) { callback(err, result); });
+      try
+      {
+        web3.eth.getBlock("latest", false, function(err, result) { callback(err, result.number); });
+      }
+      catch(error)
+      {
+        console.log(error);
+        callback(error, 0);
+      }
     },
-    function(lastBlock, callback)
+    function(lastBlockNumber, callback)
     {
-      data.lastBlock = lastBlock.number;
+      data.lastBlock = lastBlockNumber;
 
       if(data.lastBlock > kInitialMaxBlocks)
       {
@@ -137,12 +145,28 @@ router.get('/:account', function(req, res, next)
         data.fromBlock = 0;
       }
 
-      web3.eth.getBalance(req.params.account, function(err, balance) { callback(err, balance); });
+      try
+      {
+        web3.eth.getBalance(req.params.account, function(err, balance) { callback(err, balance); });
+      }
+      catch(error)
+      {
+        console.log(error);
+        callback(error, 0);
+      }
     },
     function(balance, callback)
     {
       data.balance = balance;
-      web3.eth.getCode(req.params.account, function(err, code) { callback(err, code); });
+      try
+      {
+        web3.eth.getCode(req.params.account, function(err, code) { callback(err, code); });
+      }
+      catch(error)
+      {
+        console.log(error);
+        callback(error, "");
+      }
     },
     function(code, callback)
     {
@@ -151,7 +175,7 @@ router.get('/:account', function(req, res, next)
       {
         data.isContract = true;
       }
-      
+
       db.get(req.params.account.toLowerCase(), function(err, value) { callback(null, value); });
     },
     function(source, callback)
