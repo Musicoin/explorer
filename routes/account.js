@@ -8,7 +8,7 @@ var BigNumber = require('bignumber.js');
 
 const kInitialMaxBlocks = 5000;
 const kMinBlocksToProcess = 10000;
-const kMaxBlocksToProcess = 200000;
+const kMaxBlocksToProcess = 100000;
 const kTargetNumberOfTransactions = 10000;
 
 router.get('/:account', function(req, res, next)
@@ -88,14 +88,21 @@ router.get('/:account', function(req, res, next)
       {
         var processedBlocks = data.lastBlock - data.fromBlock + 1;
         var numberOfTransactionsLeft = kTargetNumberOfTransactions - data.numberOfTransactions;
-        numberOfTransactionsLeft /= 10;  // Start with approximating for 10% more transactions to target.
+        numberOfTransactionsLeft /= 4;  // Start with approximating for 25% more transactions to target.
         numberToProcess = Math.floor(processedBlocks * numberOfTransactionsLeft / data.numberOfTransactions);
         if (numberToProcess < minBlocks)
           numberToProcess = minBlocks;
       }
       else
       {
-        numberToProcess = minBlocks;
+        if (minBlocks > kInitialMaxBlocks)
+        {
+          numberToProcess = kMaxBlocksToProcess;
+        }
+        else
+        {
+          numberToProcess = minBlocks;
+        }
       }
       console.log("numberToProcess: " + numberToProcess);
 
@@ -238,13 +245,17 @@ router.get('/:account', function(req, res, next)
       T2 = Date.now();
       console.log("T2: %d, %f secs.", T2, (T2-T1) * 1e-3);
 
-      async.series([function(callback) { getMoreTransactions(callback, kInitialMaxBlocks); },
+      async.series([
+                    function(callback) { getMoreTransactions(callback, kInitialMaxBlocks); },
                     function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
                     function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
                     function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
                     function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
                     function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
-                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); }],
+                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
+                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
+                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); }
+                   ],
 
                    function(err)
                    {
