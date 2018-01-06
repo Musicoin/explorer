@@ -44,11 +44,14 @@ router.get('/:account', function(req, res, next)
                             "fromAddress": [ req.params.account ] },
                           function(err, traces)
                           {
-                            traces.forEach(function(trace)
+                            if (traces)
                             {
-                              if (trace.action.from == req.params.account)
-                                data.tracesSent.push(trace);
-                            });
+                              traces.forEach(function(trace)
+                              {
+                                if (trace.action.from == req.params.account)
+                                  data.tracesSent.push(trace);
+                              });
+                            }
 
                             callback(err);
                           });
@@ -60,12 +63,15 @@ router.get('/:account', function(req, res, next)
                             "toAddress": [ req.params.account ] },
                           function(err, traces)
                           {
-                            traces.forEach(function(trace)
+                            if (traces)
                             {
-                              if (trace.action.author == req.params.account ||
-                                  trace.action.to == req.params.account)
-                                data.tracesReceived.push(trace);
-                            });
+                              traces.forEach(function(trace)
+                              {
+                                if (trace.action.author == req.params.account ||
+                                    trace.action.to == req.params.account)
+                                  data.tracesReceived.push(trace);
+                              });
+                            }
 
                             callback(err);
                           });
