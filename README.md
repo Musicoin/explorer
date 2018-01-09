@@ -22,9 +22,7 @@ A blockchain explorer built with Node.js and Parity. It does not require an exte
 
 ## Getting started
 
-### Setup from source
-
-Supported environment:
+### Supported environment:
 * Windows 7 and newer
 * Parity 1.8.x
 * Node.js 8
