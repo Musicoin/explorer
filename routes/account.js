@@ -9,7 +9,7 @@ var BigNumber = require('bignumber.js');
 const kInitialMaxBlocks = 5000;
 const kMinBlocksToProcess = 10000;
 const kMaxBlocksToProcess = 100000;
-const kTargetNumberOfTransactions = 10000;
+const kTargetNumberOfTransactions = 5000;
 
 router.get('/:account', function(req, res, next)
 {
