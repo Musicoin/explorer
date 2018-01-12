@@ -146,31 +146,52 @@ router.get('/:tx', function(req, res, next) {
   
 });
 
-router.get('/raw/:tx', function(req, res, next) {
-  
+router.get('/raw/:tx', function(req, res, next)
+{  
   var config = req.app.get('config');  
   var web3 = new Web3();
   web3.setProvider(config.provider);
   
-  async.waterfall([
-    function(callback) {
-      web3.eth.getTransaction(req.params.tx, function(err, result) {
-        callback(err, result);
-      });
-    }, function(result, callback) {
-      web3.trace.replayTransaction(result.hash, ["trace", "stateDiff", "vmTrace"], function(err, traces) {
-        callback(err, result, traces);
-      });
-    }
-  ], function(err, tx, traces) {
-    if (err) {
-      return next(err);
-    }
+  async.waterfall
+  ([
+     function(callback)
+     {
+       web3.eth.getTransaction(req.params.tx,
+                               function(err, result)
+                               {
+                                 callback(err, result);
+                               }
+                              );
+     },
+     function(result, callback)
+     {
+       if (result.hash)
+       {
+         web3.trace.replayTransaction(result.hash, ["trace", "stateDiff", "vmTrace"],
+                                      function(err, traces)
+                                      {
+                                        callback(err, result, traces);
+                                      }
+                                     );
+       }
+       else
+       {
+         callback(new Error("ERROR: web3.eth.getTransaction() returned null hash."), result, null);
+       }
+     }
+    ],
+    function(err, tx, traces)
+    {
+      if (err)
+      {
+        return next(err);
+      }
     
-    tx.traces = traces;
+      tx.traces = traces;
 
-    res.render('tx_raw', { tx: tx });
-  });
+      res.render('tx_raw', { tx: tx });
+    }
+  );
 });
 
 module.exports = router;
