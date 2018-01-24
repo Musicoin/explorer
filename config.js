@@ -11,6 +11,7 @@ var config = function ()
   
   this.names =
   {
+    "0x668e063ac444798acc5608a4046c56046338039f": "music.orchardcoins.com",
     "0x00297dbed0856c7915b91cb88a61e1930156a330": "Developer SJL",
     "0x89dbd56e0ac511518416fdcf5ccb452c2e89e0d4": "musicoin.miningpoolhub.com",
     "0x6c2da62088e88059c5eb008e161bcef038839516": "musicoin.miningclub.info",
