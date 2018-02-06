@@ -2,6 +2,8 @@ body
 {
   padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  background: #F0FFFF;
+  background: linear-gradient(90deg, #A0E0F0, #F0FFFF, #F0FFFF, #F0FFFF, #F0FFFF, #F0FFFF, #F0FFFF, #F0FFFF, #A0E0F0);
 }
 
 a
@@ -32,8 +34,23 @@ pre
   word-wrap: break-word;       /* Internet Explorer 5.5+ */
 }
 
+.navbar
+{
+  background: #26B;
+  background: linear-gradient(#26B, #59D);
+  font-weight: bold;
+  color: #CCD;
+  text-shadow: 0 0 15px #004; 0 0 30px #008
+}
+
 .navbar-inverse
 {
   background-color: #4070D0;
   border-color: #000000;
+}
+
+.btn-primary
+{
+  background: #09C;
+  background: radial-gradient(#0BE, #09C);
 }
