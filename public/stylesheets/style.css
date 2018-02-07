@@ -1,14 +1,23 @@
 body
 {
   padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
   background: #F0FFFF;
-  background: linear-gradient(90deg, #A0E0F0, #F0FFFF, #F0FFFF, #F0FFFF, #F0FFFF, #F0FFFF, #F0FFFF, #F0FFFF, #A0E0F0);
+  background: linear-gradient(90deg, #A0E0F0, #F0FFFF 8%, #F0FFFF 92%, #A0E0F0);
+  margin-left: 5%;
+  margin-right: 5%;
 }
 
 a
 {
   color: #00B7FF;
+}
+
+hr
+{
+  margin-top: 21px;
+  margin-bottom: 21px;
+  border-top: 1px solid #0CE;
 }
 
 .capitalize
@@ -39,14 +48,32 @@ pre
   background: #26B;
   background: linear-gradient(#26B, #59D);
   font-weight: bold;
+  font-size: 15px;
   color: #CCD;
-  text-shadow: 0 0 15px #004; 0 0 30px #008
+  text-shadow: 0 0 15px #004, 0 0 30px #008;
+  padding-left: 8%;
+  padding-right: 8%;
 }
 
 .navbar-inverse
 {
   background-color: #4070D0;
   border-color: #000000;
+}
+
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus
+{
+  color: #6f6f6f;
+  background: #F0FFFF;
+  border: 1px solid #0CE;
+  border-bottom-color: transparent;
+  border-radius: 5px 5px 0 0;
+  cursor: default;
+}
+
+.nav-tabs 
+{
+  border-bottom: 1px solid #0CE;
 }
 
 .btn-primary
