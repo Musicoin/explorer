@@ -23,7 +23,7 @@ A blockchain explorer built with Node.js and Parity. It does not require an exte
 ## Getting started
 
 ### Supported environment:
-* Windows 7 and newer
+* Windows 7 and newer. Ubuntu 16.x.
 * Parity 1.8.x
 * Node.js 8
 
@@ -31,10 +31,12 @@ A blockchain explorer built with Node.js and Parity. It does not require an exte
 
 1. Install the Parity node. You might need to install VS 2015 x64 redistributable from Microsoft
 2. Install Node.js
-3. Start parity using the following options: `parity --chain musicoin --tracing=on --fat-db=on --pruning=archive  --ipcpath=\\.\pipe\musicoin.ipc`
+3. For Windows, start parity using the following options: `parity --chain musicoin --tracing=on --fat-db=on --pruning=archive  --ipcpath=\\.\pipe\musicoin.ipc`  
+   For Ubuntu, use: `parity --chain musicoin --tracing=on --fat-db=on --pruning=archive`
 4. Clone this repository to your local machine: `git clone https://github.com/seungjlee/MusicoinExplorer.git --recursive` (Make sure to include `--recursive` in order to fetch the solc-bin git submodule).
 5. Install all dependencies: `npm install`
-6. Adjust `config.js` if necessary.
+6. Adjust `config.js` if necessary. For Ubuntu, set:  
+  `this.ipcPath = process.env["HOME"] + "/.local/share/io.parity.ethereum/jsonrpc.ipc";`
 7. Start the block explorer: `npm start`
 8. Browse to `http://localhost:3000`
 
