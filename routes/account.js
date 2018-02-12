@@ -14,6 +14,7 @@ const kTargetNumberOfTransactions = 5000;
 router.get('/:account', function(req, res, next)
 {
   var T0 = Date.now();
+  console.log("-----------------------------------------------------------------")
   console.log("T0: %d", T0)
 
   var T1 = T0;
@@ -31,7 +32,6 @@ router.get('/:account', function(req, res, next)
   var db = req.app.get('db');
   
   var data = {};
-  var blockList = [];
   var blockOffsets = [];
   
   function getTransactions(toBlock, callback)
@@ -250,23 +250,15 @@ router.get('/:account', function(req, res, next)
     {
       T2 = Date.now();
       console.log("T2: %d, %f secs.", T2, (T2-T1) * 1e-3);
+      
+      const maxIterations = 15;
 
-      async.series([
-                    function(callback) { getMoreTransactions(callback, kInitialMaxBlocks); },
-                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
-                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
-                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
-                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
-                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
-                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
-                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); },
-                    function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); }
-                   ],
+      var callbacks = [];
+      callbacks.push(function(callback) { getMoreTransactions(callback, kInitialMaxBlocks); });
+      for (i = 1; i < maxIterations; i++)
+        callbacks.push(function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); });
 
-                   function(err)
-                   {
-                     callback(err);
-                   });
+      async.series(callbacks, function(err) { callback(err); });
     },
     function(callback)
     {
@@ -317,60 +309,36 @@ router.get('/:account', function(req, res, next)
       console.log("Blocks mined: %d, Uncles: %d",
                   data.numberOfBlocksMined, data.numberOfUncles);
 
-      for (var block in blocks)
-      {
-        blockList.push(block);
-      }
-
-      if (data.blockCount > 0)
-      {
-        var count = 0;
-
-        async.eachOfSeries
-        (blockList,
-         async function(block)
-         {
-           web3.eth.getBlock(block, false,
-                             function(err, result)
-                             {
-                               blocks[result.number].time = result.timestamp;
-                               blocks[result.number].difficulty = result.difficulty;
-                               //blocks[result.number].gasUsed = result.gasUsed;
-                               count++;
-                               if (count >= data.blockCount)
-                               {
-                                 callback(err, blocks);
-                               }
-                             });
-         });
-      }
-      else
-      {
-        callback(null, blocks);
-      }
-    },
-    function(blocks, callback)
-    {
       T4 = Date.now();
       console.log("T4: %d, %f secs.", T4, (T4-T3) * 1e-3);
 
       if (data.blockCount > 0)
       {
         var count = 0;
-
-        async.eachOfSeries
-        (blockList,
-         async function(block)
+        var blockList = [];
+        for (var block in blocks)
+          blockList.push(block);
+        
+        blockList.forEach
+        (function(block)
          {
            web3.eth.getBalance(data.address, block, 
                                function(err, result)
                                {
                                  blocks[block].balance = result;
-                                 count++;
-                                 if (count >= data.blockCount)
-                                 {
-                                   callback(err, blocks);
-                                 }
+
+                                 web3.eth.getBlock(block, false,
+                                                   function(err, result)
+                                                   {
+                                                     blocks[result.number].time = result.timestamp;
+                                                     blocks[result.number].difficulty = result.difficulty;
+
+                                                     count++;
+                                                     if (count >= data.blockCount)
+                                                     {
+                                                       callback(err, blocks);
+                                                     }
+                                                   });
                                });
          });
       }
@@ -424,6 +392,7 @@ router.get('/:account', function(req, res, next)
 
     var TE = Date.now();
     console.log("TE: %d, %f secs.", TE, (TE-T0) * 1e-3);
+    console.log("-----------------------------------------------------------------")
   });
   
 });
