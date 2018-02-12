@@ -9,9 +9,9 @@ var BigNumber = require('bignumber.js');
 const kInitialMaxBlocks = 5000;
 const kMinBlocksToProcess = 10000;
 const kMaxBlocksToProcess = 100000;
-const kTargetNumberOfTransactions = 5000;
+const kDefaultTargetNumberOfTransactions = 5000;
 
-router.get('/:account', function(req, res, next)
+function GetAccountInfo(req, res, next)
 {
   var T0 = Date.now();
   console.log("-----------------------------------------------------------------")
@@ -24,6 +24,11 @@ router.get('/:account', function(req, res, next)
   var T5 = T0;
   var T6 = T0;
   var T7 = T0;
+  
+  var targetNumberOfTransactions = kDefaultTargetNumberOfTransactions;
+  
+  if (req.params.targetNumberOfTransactions)
+    targetNumberOfTransactions = req.params.targetNumberOfTransactions;
 
   var config = req.app.get('config');  
   var web3 = new Web3();
@@ -86,14 +91,14 @@ router.get('/:account', function(req, res, next)
   {
     data.numberOfTransactions = data.tracesSent.length + data.tracesReceived.length;
 
-    if (data.numberOfTransactions < kTargetNumberOfTransactions && data.fromBlock > 0)
+    if (data.numberOfTransactions < targetNumberOfTransactions && data.fromBlock > 0)
     {
       var toBlock = data.fromBlock - 1;
       var numberToProcess = 0;
       if (data.numberOfTransactions > 0)
       {
         var processedBlocks = data.lastBlock - data.fromBlock + 1;
-        var numberOfTransactionsLeft = kTargetNumberOfTransactions - data.numberOfTransactions;
+        var numberOfTransactionsLeft = targetNumberOfTransactions - data.numberOfTransactions;
         numberOfTransactionsLeft /= 4;  // Start with approximating for 25% more transactions to target.
         numberToProcess = Math.floor(processedBlocks * numberOfTransactionsLeft / data.numberOfTransactions);
         if (numberToProcess < minBlocks)
@@ -380,7 +385,7 @@ router.get('/:account', function(req, res, next)
       data.name = config.names[data.address];
     }
 
-    data.blocks = data.blocks.reverse().splice(0, 5*kTargetNumberOfTransactions);
+    data.blocks = data.blocks.reverse().splice(0, 5*targetNumberOfTransactions);
 
     T6 = Date.now();
     console.log("T6: %d, %f secs.", T6, (T6-T5) * 1e-3);
@@ -395,6 +400,9 @@ router.get('/:account', function(req, res, next)
     console.log("-----------------------------------------------------------------")
   });
   
-});
+}
+
+router.get('/:account', GetAccountInfo);
+router.get('/:account/:targetNumberOfTransactions', GetAccountInfo);
 
 module.exports = router;
