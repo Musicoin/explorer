@@ -36,8 +36,8 @@ block content
         table.table
           thead
             tr
-              //th Hash
               th Block
+              th Tx
               th Time
               th(style='text-align:right') Difficulty
               th(style='text-align:right') Approx. Rate
@@ -52,10 +52,10 @@ block content
               for trace in block
                 if trace.type == "call" && (trace.action.from == account.address || trace.action.to == account.address)
                   tr            
-                    //td 
-                    //  a(href="/tx/" + trace.transactionHash)  #{trace.transactionHash.substr(0, 10)}...
                     td
                       a(href="/block/" + trace.blockNumber) #{trace.blockNumber}
+                    td 
+                      a(href="/tx/" + trace.transactionHash)  #{trace.transactionHash.substr(0, 10)}...
                     td #{moment.unix(block.time).format()} (#{moment.unix(block.time).fromNow()})
                     td(style='text-align:right') #{numeral(block.difficulty * 1e-12).format('0.000')} TH
                     td(style='text-align:right') #{numeral(block.difficulty * 1e-9 / 15).format('0.00')} GH/s
@@ -72,14 +72,15 @@ block content
                       else
                         span.glyphicon.glyphicon-import(style="color: green;")
                     td
-                      a(href="/account/" + trace.action.from) #{nameformatter.format(trace.action.from.substr(0, 12))}...
+                      a(href="/account/" + trace.action.from) #{nameformatter.format(trace.action.from.substr(0, 10))}...
                     td 
-                      a(href="/account/" + trace.action.to) #{nameformatter.format(trace.action.to.substr(0, 12))}...
+                      a(href="/account/" + trace.action.to) #{nameformatter.format(trace.action.to.substr(0, 10))}...
                 else if trace.type == "reward" && trace.action.author == account.address
                   if trace.action.rewardType == "block"
                     tr            
                       td
                         a(href="/block/" + trace.blockNumber) #{trace.blockNumber}
+                      td
                       td #{moment.unix(block.time).format()} (#{moment.unix(block.time).fromNow()})
                       td(style='text-align:right') #{numeral(block.difficulty * 1e-12).format('0.000')} TH
                       td(style='text-align:right') #{numeral(block.difficulty * 1e-9 / 15).format('0.00')} GH/s
@@ -94,6 +95,7 @@ block content
                     tr            
                       td
                         a(href="/block/" + trace.blockNumber) #{trace.blockNumber}
+                      td
                       td #{moment.unix(block.time).format()} (#{moment.unix(block.time).fromNow()})
                       td(style='text-align:right') #{numeral(block.difficulty * 1e-12).format('0.000')} TH
                       td(style='text-align:right') #{numeral(block.difficulty * 1e-9 / 15).format('0.00')} GH/s
