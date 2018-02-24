@@ -368,13 +368,8 @@ function GetAccountInfo(req, res, next)
     data.tracesReceived = null;
     
     data.blocks = [];
-    var txCounter = 0;
     for (var block in blocks)
-    {
-      //console.log(bb);
       data.blocks.push(blocks[block]);
-      txCounter++;
-    }
     
     if (data.source)
     {
