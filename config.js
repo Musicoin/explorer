@@ -19,7 +19,9 @@ var config = function ()
     "0xb5e08179a97359f189a07b51478c2ba2fc779cf0": "mc.minecrypto.pro",
     "0x3a0b46a62ed6d65d98a6129d6e50dc714c1cfe23": "gmc.epool.io",
     "0x1cc2f94b2cd644aa3d262f7b144088b810375f80": "music.mypool.online",
-    "0xa11d858c900487ad62dcc1cecdd87d4514fb70fa": "music.reidocoin.com.br"
+    "0xa11d858c900487ad62dcc1cecdd87d4514fb70fa": "music.reidocoin.com.br",
+    "0xaf7c8edca9c241faf8f3f4a496da9479310e5fe9": "pool.musicoin.tw",
+    "0xc36ba0f6b8582682b9e035ec78bdba9013c9e082": "coinmine.pl/music"
   }
   
   this.sslKey = "C:/ProgramData/letsencrypt-win-simple/httpsacme-v01.api.letsencrypt.org/explorer.musicoin.org-key.pem";
