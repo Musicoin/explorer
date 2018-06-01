@@ -39,6 +39,8 @@ function GetAccountInfo(req, res, next)
   var data = {};
   var blockOffsets = [];
   
+  var accountLowercase = req.params.account.toLowerCase();
+
   function getTransactions(toBlock, callback)
   {
     async.series([
@@ -46,14 +48,14 @@ function GetAccountInfo(req, res, next)
       {
         web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16),
                             "toBlock": "0x" + toBlock.toString(16),
-                            "fromAddress": [ req.params.account ] },
+                            "fromAddress": [ accountLowercase ] },
                           function(err, traces)
                           {
                             if (traces)
                             {
                               traces.forEach(function(trace)
                               {
-                                if (trace.action.from == req.params.account)
+                                if (trace.action.from == accountLowercase)
                                   data.tracesSent.push(trace);
                               });
                             }
@@ -65,15 +67,15 @@ function GetAccountInfo(req, res, next)
       {
         web3.trace.filter({ "fromBlock": "0x" + data.fromBlock.toString(16),
                             "toBlock": "0x" + toBlock.toString(16),
-                            "toAddress": [ req.params.account ] },
+                            "toAddress": [ accountLowercase ] },
                           function(err, traces)
                           {
                             if (traces)
                             {
                               traces.forEach(function(trace)
                               {
-                                if (trace.action.author == req.params.account ||
-                                    trace.action.to == req.params.account)
+                                if (trace.action.author == accountLowercase ||
+                                    trace.action.to == accountLowercase)
                                   data.tracesReceived.push(trace);
                               });
                             }
@@ -165,7 +167,7 @@ function GetAccountInfo(req, res, next)
 
       try
       {
-        web3.eth.getBalance(req.params.account, function(err, balance) { callback(err, balance); });
+        web3.eth.getBalance(accountLowercase, function(err, balance) { callback(err, balance); });
       }
       catch(error)
       {
@@ -178,7 +180,7 @@ function GetAccountInfo(req, res, next)
       data.balance = balance;
       try
       {
-        web3.eth.getCode(req.params.account, function(err, code) { callback(err, code); });
+        web3.eth.getCode(accountLowercase, function(err, code) { callback(err, code); });
       }
       catch(error)
       {
@@ -194,7 +196,7 @@ function GetAccountInfo(req, res, next)
         data.isContract = true;
       }
 
-      db.get(req.params.account.toLowerCase(), function(err, value) { callback(null, value); });
+      db.get(accountLowercase, function(err, value) { callback(null, value); });
     },
     function(source, callback)
     {
@@ -204,7 +206,7 @@ function GetAccountInfo(req, res, next)
         data.source = JSON.parse(source);
         
         var abi = JSON.parse(data.source.abi);
-        var contract = web3.eth.contract(abi).at(req.params.account);
+        var contract = web3.eth.contract(abi).at(accountLowercase);
         
         data.contractState = [];
         
@@ -270,7 +272,7 @@ function GetAccountInfo(req, res, next)
       T3 = Date.now();
       console.log("T3: %d, %f secs.", T3, (T3-T2) * 1e-3);
 
-      data.address = req.params.account;
+      data.address = accountLowercase;
       data.numberOfTransactions = data.tracesSent.length + data.tracesReceived.length;
       data.numberOfBlocksMined = 0;
       data.numberOfUncles = 0;
