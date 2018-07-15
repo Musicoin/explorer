@@ -42,6 +42,7 @@ A blockchain explorer built with Node.js and Parity. It does not require an exte
 
 ### API
 /api/currentBlock  
+/api/totalCoins  
 /api/block/<block_number>  
 /api/accountBalance/<account_address>  
 /api/transaction/<transaction_hash>  
