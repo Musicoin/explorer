@@ -67,4 +67,20 @@ router.get('/transaction/:transactionHash', function(req, res, next)
   });
 });
 
+router.get('/totalCoins', function(req, res, next)
+{
+  var config = req.app.get('config');  
+  var web3 = new Web3();
+  web3.setProvider(config.provider);
+
+  web3.eth.getBlock("latest", false, function(err, result)
+  {
+    if (err)
+      return next(err);
+
+    var totalCoins = 314 * result.number;
+    res.status(200).send(totalCoins.toString());
+  });
+});
+
 module.exports = router;
