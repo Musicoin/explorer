@@ -9,7 +9,7 @@ var BigNumber = require('bignumber.js');
 const kInitialMaxBlocks = 5000;
 const kMinBlocksToProcess = 10000;
 const kMaxBlocksToProcess = 100000;
-const kDefaultTargetNumberOfTransactions = 5000;
+const kDefaultTargetNumberOfTransactions = 1000;
 
 function GetAccountInfo(req, res, next)
 {
