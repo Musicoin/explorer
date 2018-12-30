@@ -6,9 +6,11 @@ var Web3 = require('web3');
 
 var BigNumber = require('bignumber.js');
 
-const kInitialMaxBlocks = 5000;
-const kMinBlocksToProcess = 10000;
-const kMaxBlocksToProcess = 100000;
+const kInitialMaxBlocks = 1000;
+const kMinBlocksToProcess = 2000;
+const kMaxBlocksToProcess = 6000;
+const kMaxIterations = 600;
+
 const kDefaultTargetNumberOfTransactions = 1000;
 
 function GetAccountInfo(req, res, next)
@@ -92,6 +94,7 @@ function GetAccountInfo(req, res, next)
   function getMoreTransactions(callback, minBlocks)
   {
     data.numberOfTransactions = data.tracesSent.length + data.tracesReceived.length;
+    //console.log("numberOfTransactions found so far: " + data.numberOfTransactions);
 
     if (data.numberOfTransactions < targetNumberOfTransactions && data.fromBlock > 0)
     {
@@ -117,7 +120,7 @@ function GetAccountInfo(req, res, next)
           numberToProcess = minBlocks;
         }
       }
-      console.log("numberToProcess: " + numberToProcess);
+      //console.log("numberToProcess: " + numberToProcess);
 
       if (numberToProcess > kMaxBlocksToProcess)
         numberToProcess = kMaxBlocksToProcess;
@@ -128,8 +131,8 @@ function GetAccountInfo(req, res, next)
 
       data.fromBlock = fromBlock;
 
-      console.log("From: 0x" + data.fromBlock.toString(16) + " (" + data.fromBlock + ")");
-      console.log("To:   0x" + toBlock.toString(16) + " (" + toBlock + ")");
+      //console.log("From: 0x" + data.fromBlock.toString(16) + " (" + data.fromBlock + ")");
+      //console.log("To:   0x" + toBlock.toString(16) + " (" + toBlock + ")");
 
       getTransactions(toBlock, callback);
     }
@@ -257,12 +260,10 @@ function GetAccountInfo(req, res, next)
     {
       T2 = Date.now();
       console.log("T2: %d, %f secs.", T2, (T2-T1) * 1e-3);
-      
-      const maxIterations = 15;
 
       var callbacks = [];
       callbacks.push(function(callback) { getMoreTransactions(callback, kInitialMaxBlocks); });
-      for (i = 1; i < maxIterations; i++)
+      for (i = 1; i < kMaxIterations; i++)
         callbacks.push(function(callback) { getMoreTransactions(callback, kMinBlocksToProcess); });
 
       async.series(callbacks, function(err) { callback(err); });
