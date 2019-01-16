@@ -8,8 +8,8 @@ var BigNumber = require('bignumber.js');
 
 const kInitialMaxBlocks = 1000;
 const kMinBlocksToProcess = 2000;
-const kMaxBlocksToProcess = 5000;
-const kMaxIterations = 500;
+const kMaxBlocksToProcess = 6000;
+const kMaxIterations = 600;
 
 const kDefaultTargetNumberOfTransactions = 1000;
 
