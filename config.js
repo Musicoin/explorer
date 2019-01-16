@@ -24,9 +24,9 @@ var config = function ()
     "0xc36ba0f6b8582682b9e035ec78bdba9013c9e082": "coinmine.pl/music"
   }
   
-  this.sslKey = "";
-  this.sslCertificate = "";
-  this.port = 3000;
+  this.sslKey = "C:/ProgramData/letsencrypt-win-simple/httpsacme-v01.api.letsencrypt.org/explorer.musicoin.org-key.pem";
+  this.sslCertificate = "C:/ProgramData/letsencrypt-win-simple/httpsacme-v01.api.letsencrypt.org/explorer.musicoin.org-crt.pem";
+  this.port = 443;
 }
 
 module.exports = config;
